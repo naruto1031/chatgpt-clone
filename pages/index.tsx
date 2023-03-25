@@ -17,26 +17,30 @@ export default function Home() {
     apiKey: process.env.NEXT_PUBLIC_OPENAPI_KEY,
   });
 
+  // OpenAIApiクラスのインスタンスを生成
   const openai = new OpenAIApi(configuration);
 
+  // 送信ボタンをクリック時に処理を発動
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // 送信中のフラグをtrueに
     setIsLoading(true);
 
+    // OpenAI APIを使ってチャットの応答を生成
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: "こんにちは" }]
+      messages: [{ role: "user", content: message }]
     });
 
+    // 送信したメッセージとレスポンスしたデータをMessagesに配列として格納。
     setMessages((prevMessage: Message[]) => [
       ...prevMessage,
       { sender: "user", text: message },
       { sender: "ai", text: response.data.choices[0].message?.content || "" },
     ]);
 
-    console.log(messages);
-
+    setMessage("");
     setIsLoading(false);
   }
 
@@ -55,12 +59,25 @@ export default function Home() {
             className="bg-gray-100 w-full p-4 h-96 overflow-scroll rounded-md"
           >
             <span className='text-center block font-medium text-2xl border-b-2 border-indigo-400 pb-3 mb-3'>ChatGPT-Clone</span>
-            <div className="flex justify-end mb-2">
-              <div className='bg-indigo-400 text-white p-2 rounded-md'>hello</div>
-            </div>
-            <div className="flex justify-start mb-2">
-              <div className=' bg-gray-200 p-2 rounded-md'>こんにちは何か御用ですか？</div>
-            </div>
+
+            {messages.map((message: Message, index: number) => (
+              <div
+                className={`
+                  flex 
+                  ${message.sender === "user" ? "justify-end" : "justify-start"}
+                  mb-2
+                `}
+                key={index}
+              >
+                <div className={`
+                  ${message.sender === "user" ? "bg-indigo-400 text-white" : "bg-gray-200"}
+                  p-2 rounded-md
+                  `}
+                >
+                  {message.text}
+                </div>
+              </div>
+            ))}
           </div>
           <form
             action="/"
